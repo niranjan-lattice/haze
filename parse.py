@@ -22,10 +22,20 @@ def updateCodeMap(row):
 		ailmentToCode[ailment].append(code)
 		lastSeenCode = code
 
+def getAllowedServices(allowedServices):
+	if allowedServices.startswith('$'):
+		allowedServices = allowedServices[1:]
+	return float(allowedServices.replace(',',''))
+
+def getAllowedCharges(allowedCharges):
+	if allowedCharges.startswith('$'):
+		allowedCharges = allowedCharges[1:]
+	return float(allowedCharges.replace(',',''))
+
 def updateAvgCost(row):
 	modifier = str(row['MODIFIER'])
 	if modifier == 'TOTAL':
-		codeToAvg[lastSeenCode] = float(row['ALLOWED CHARGES'][1:].replace(',','')) / float(row['ALLOWED SERVICES'].replace(',',''))
+		codeToAvg[lastSeenCode] =  getAllowedCharges(row['ALLOWED CHARGES'])/ getAllowedServices(row['ALLOWED SERVICES'])
 
 def getCSVs():
 	from os import listdir
@@ -42,4 +52,5 @@ for file_name in getCSVs():
 			continue
 		updateCodeMap(row)
 		updateAvgCost(row)
-print ailmentToCode
+for a in ailmentToCode:
+	print a, len(ailmentToCode[a])
