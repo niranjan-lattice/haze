@@ -3,7 +3,7 @@ import pandas as pd
 ailment = None
 lastSeenCode = None
 ailmentToCode = {}
-codeToAvg = {}
+codeToVal = {}
 
 def setAilment(row):
 	global ailment
@@ -22,20 +22,23 @@ def updateCodeMap(row):
 		ailmentToCode[ailment].append(code)
 		lastSeenCode = code
 
-def getAllowedServices(allowedServices):
-	if allowedServices.startswith('$'):
-		allowedServices = allowedServices[1:]
-	return float(allowedServices.replace(',',''))
+def getFormattedVal(unformatted):
+	unformatted = str(unformatted)
+	if unformatted != 'nan' and unformatted.startswith('$'):
+		unformatted = unformatted[1:]
+	formatted = float(unformatted.replace(',',''))
+	return formatted
 
-def getAllowedCharges(allowedCharges):
-	if allowedCharges.startswith('$'):
-		allowedCharges = allowedCharges[1:]
-	return float(allowedCharges.replace(',',''))
-
-def updateAvgCost(row):
+def updateValsFromRow(row):
+	updateForCols = ['ALLOWED CHARGES', 'ALLOWED SERVICES', 'PAYMENT']
 	modifier = str(row['MODIFIER'])
 	if modifier == 'TOTAL':
-		codeToAvg[lastSeenCode] =  getAllowedCharges(row['ALLOWED CHARGES'])/ getAllowedServices(row['ALLOWED SERVICES'])
+		if not lastSeenCode in codeToVal:
+			codeToVal[lastSeenCode] = {}
+			for updateFor in updateForCols:
+				codeToVal[lastSeenCode][updateFor] = 0.0
+		for updateFor in updateForCols:
+			codeToVal[lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
 
 def getCSVs():
 	from os import listdir
@@ -51,6 +54,24 @@ for file_name in getCSVs():
 		if not ailment and not setAilment(row):
 			continue
 		updateCodeMap(row)
-		updateAvgCost(row)
-for a in ailmentToCode:
-	print a, len(ailmentToCode[a])
+		updateValsFromRow(row)
+
+def printJson():
+	# print 'id,value'
+	vals_json = []
+	for a in ailmentToCode:
+		vals_item = {'name':a, 'children':[]}
+		#print a, len(ailmentToCode[a])
+		for code in ailmentToCode[a]:
+			if code in codeToVal:
+				avg_pay = avg_charges = 0
+				avg_pay = codeToVal[code]['PAYMENT']/codeToVal[code]['ALLOWED SERVICES']
+				avg_charges = codeToVal[code]['ALLOWED CHARGES']/codeToVal[code]['ALLOWED SERVICES']
+				if avg_charges > 0.0:
+					percentage_paid = (avg_pay/avg_charges)*100
+					vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
+					# print a.replace(' ', '_')+"."+code+","+str(percentage_paid)
+		vals_json.append(vals_item)
+	print vals_json
+
+printJson()
