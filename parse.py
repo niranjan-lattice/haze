@@ -85,7 +85,6 @@ def parse_csvs():
 		'2015': 3
 	}
 	for year in getYears():
-		print year
 		for file_name in getCSVs(year):
 			global ailment
 			try:
@@ -100,60 +99,58 @@ def parse_csvs():
 				print './data/'+str(year)+'/'+file_name
 				raise
 
-def printJson(year):
-	vals_json = []
-	hist_arr = []
-	totals_json = {'name':'Ailments','children':[]}
-	for a in ailmentToCode[year]:
-		vals_item = {'name':a, 'children':[]}
-		totals_item = {'name':a, 'children':[]}
-		ailment_totals = {
-			"charges": 0.0,
-			"payment": 0.0,
-			"services": 0.0
-		}
-		for code in ailmentToCode[year][a]:
-			if code in codeToVal[year]:
-				avg_pay = avg_charges = 0
-				ailment_totals["charges"] += codeToVal[year][code]['ALLOWED CHARGES']
-				ailment_totals["payment"] += codeToVal[year][code]['PAYMENT']
-				ailment_totals["services"] += codeToVal[year][code]['ALLOWED SERVICES']
-				avg_pay = codeToVal[year][code]['PAYMENT']/codeToVal[year][code]['ALLOWED SERVICES']
-				avg_charges = codeToVal[year][code]['ALLOWED CHARGES']/codeToVal[year][code]['ALLOWED SERVICES']
-				if avg_charges > 0.0:
-					percentage_paid = (avg_pay/avg_charges)*100
-					if not math.isnan(percentage_paid):
-						hist_arr.append(percentage_paid)
-					vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
-		vals_json.append(vals_item)
-		ailment_avg = ((ailment_totals['payment']/ailment_totals['services'])/(ailment_totals['charges']/ailment_totals['services']))*100
-		ailment_avg = str(round(ailment_avg, 2))
-		totals_item['children'].append({'name':ailment_avg})
-		totals_json['children'].append(totals_item)
-	generate_hist(hist_arr, year)
+def printJson():
+	hist_arr = {}
+	for year in getYears():
+		vals_json = []
+		hist_arr[year] = []
+		totals_json = {'name':'Ailments','children':[]}
+		for a in ailmentToCode[year]:
+			vals_item = {'name':a, 'children':[]}
+			totals_item = {'name':a, 'children':[]}
+			ailment_totals = {
+				"charges": 0.0,
+				"payment": 0.0,
+				"services": 0.0
+			}
+			for code in ailmentToCode[year][a]:
+				if code in codeToVal[year]:
+					avg_pay = avg_charges = 0
+					ailment_totals["charges"] += codeToVal[year][code]['ALLOWED CHARGES']
+					ailment_totals["payment"] += codeToVal[year][code]['PAYMENT']
+					ailment_totals["services"] += codeToVal[year][code]['ALLOWED SERVICES']
+					avg_pay = codeToVal[year][code]['PAYMENT']/codeToVal[year][code]['ALLOWED SERVICES']
+					avg_charges = codeToVal[year][code]['ALLOWED CHARGES']/codeToVal[year][code]['ALLOWED SERVICES']
+					if avg_charges > 0.0:
+						percentage_paid = (avg_pay/avg_charges)*100
+						if not math.isnan(percentage_paid):
+							hist_arr[year].append(percentage_paid)
+						vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
+			vals_json.append(vals_item)
+			ailment_avg = ((ailment_totals['payment']/ailment_totals['services'])/(ailment_totals['charges']/ailment_totals['services']))*100
+			ailment_avg = str(round(ailment_avg, 2))
+			totals_item['children'].append({'name':ailment_avg})
+			totals_json['children'].append(totals_item)
+	generate_hist(hist_arr)
 
-def generate_hist(hist_arr, year):
+def generate_hist(hist_data):
 	import numpy as np
 	import matplotlib.pyplot as plt
 	fig = plt.figure()
-	x = np.asarray(hist_arr)
-
-	ax1 = fig.add_subplot(211)
-	ax1.hist(x, 100, normed=1, facecolor='g', alpha=0.75)
-	ax1.set_xlabel('Paid Percentage')
-	ax1.set_ylabel('Probability')
-	ax1.set_title('Histogram of Payment %')
-	ax1.axis([0, 105, 0, 0.4])
-	ax1.grid(True)
-
-	ax2 = fig.add_subplot(212)
-	ax2.hist(x, 50, normed=1, facecolor='b', alpha=0.75)
-	ax2.set_xlabel('Paid Percentage')
-	ax2.set_ylabel('Probability')
-	ax2.set_title('Histogram of Payment %')
-	ax2.axis([0, 105, 0, 0.4])
-	ax2.grid(True)
-
+	cols = len(hist_data)
+	rows = 1
+	years = [int(y) for y in hist_data.keys()]
+	years.sort()
+	for idx, year in enumerate(years):
+		x = np.asarray(hist_data[str(year)])
+		ax1 = fig.add_subplot(rows, cols, idx+1)
+		ax1.hist(x, 50, normed=1, facecolor='g', alpha=0.75)
+		ax1.set_xlabel('Paid Percentage')
+		ax1.set_ylabel('Probability')
+		ax1.set_title(str(year))
+		ax1.axis([40, 105, 0, 0.5])
+		ax1.grid(True)
 	plt.show()
 
 parse_csvs()
+printJson()
