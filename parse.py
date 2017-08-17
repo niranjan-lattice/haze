@@ -57,11 +57,10 @@ for file_name in getCSVs():
 		updateValsFromRow(row)
 
 def printJson():
-	# print 'id,value'
 	vals_json = []
+	hist_arr = []
 	for a in ailmentToCode:
 		vals_item = {'name':a, 'children':[]}
-		#print a, len(ailmentToCode[a])
 		for code in ailmentToCode[a]:
 			if code in codeToVal:
 				avg_pay = avg_charges = 0
@@ -69,9 +68,28 @@ def printJson():
 				avg_charges = codeToVal[code]['ALLOWED CHARGES']/codeToVal[code]['ALLOWED SERVICES']
 				if avg_charges > 0.0:
 					percentage_paid = (avg_pay/avg_charges)*100
+					hist_arr.append(percentage_paid)
 					vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
-					# print a.replace(' ', '_')+"."+code+","+str(percentage_paid)
 		vals_json.append(vals_item)
-	print vals_json
+	# print vals_json
+	generate_hist(hist_arr)
+
+def generate_hist(hist_arr):
+	import numpy as np
+	import matplotlib.pyplot as plt
+	# Fixing random state for reproducibility
+	np.random.seed(19680801)
+	mu, sigma = 100, 15
+	x = mu + sigma * np.random.randn(10000)
+	print x
+	# the histogram of the data
+	n, bins, patches = plt.hist(x, 50, normed=1, facecolor='g', alpha=0.75)
+	plt.xlabel('Smarts')
+	plt.ylabel('Probability')
+	plt.title('Histogram of IQ')
+	plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+	plt.axis([40, 160, 0, 0.03])
+	plt.grid(True)
+	plt.show()
 
 printJson()
