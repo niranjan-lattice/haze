@@ -1,0 +1,12 @@
+CPT only copyright 2009 American Medical Association. All rights reserved.,,,,,,
+,,,,,,
+"Part B National Summary Data File
+Code Range: 26) Diagnostic Radiology Procedures (R0000 - R9999)",,,,,,
+,,,,,,
+DESCRIPTION,HCPCS,MODIFIER,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT,
+DIAGNOSTIC RADIOLOGY SERVICES,R0070,TOTAL,"1,123,039","$177,859,046.88","$139,716,049.17",
+,,,,,,
+,R0075,TOTAL,"420,667","$27,388,221.86","$21,179,960.06",
+,,,,,,
+,R0076,TOTAL,0,$0.00,$0.00,
+,,,,,,
