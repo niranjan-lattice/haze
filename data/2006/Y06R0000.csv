@@ -1,0 +1,7 @@
+,,,Medicare Part B Physician/Supplier BESS Data,,
+,,,For Calendar Year 2006,,
+,,,Codes R0070 - R0075,,
+HCPCS,MODIFIER,DESCRIPTION,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+_____,________,___________,________________,_______________,_______
+R0070,TOTAL,DIAGNOSTIC RADIOLOGY,"1,027,419","$137,927,589.77 ","$108,062,359.17 "
+R0075,TOTAL,,"453,705","$25,810,258.74 ","$19,995,588.18 "

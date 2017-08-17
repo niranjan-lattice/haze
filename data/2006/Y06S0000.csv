@@ -1,0 +1,9 @@
+,,,Medicare Part B Physician/Supplier BESS Data,,
+,,,For Calendar Year 2006,,
+,,,Code Ranges S0000 -  S9999,,
+HCPCS,MODIFIER,DESCRIPTION,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+_____,________,___________,________________,_______________,_______
+S0020,TOTAL,NAT. PRIVATE PAYER,836,$8.36 ,$8.08 
+S0605,TOTAL,,1,$0.01 ,$0.01 
+S0612,TOTAL,,4,$0.04 ,$0.04 
+S0620,TOTAL,,1,$0.01 ,$0.01 

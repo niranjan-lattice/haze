@@ -76,6 +76,7 @@ def parse_csvs():
 		'2003': 4,
 		'2004': 4,
 		'2005': 4,
+		'2006': 3,
 		'2014': 3,
 		'2015': 3
 	}
@@ -83,14 +84,17 @@ def parse_csvs():
 		print year
 		for file_name in getCSVs(year):
 			global ailment
-			# print './data/'+str(year)+'/'+file_name
-			csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=yearsSkipRows[str(year)], dtype=str)
-			ailment = None
-			for idx, row in csv.iterrows():
-				if not ailment and not setAilment(row):
-					continue
-				updateCodeMap(row, year)
-				updateValsFromRow(row, year)
+			try:
+				csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=yearsSkipRows[str(year)], dtype=str)
+				ailment = None
+				for idx, row in csv.iterrows():
+					if not ailment and not setAilment(row):
+						continue
+					updateCodeMap(row, year)
+					updateValsFromRow(row, year)
+			except:
+				print './data/'+str(year)+'/'+file_name
+				raise
 
 def printJson(year):
 	vals_json = []
