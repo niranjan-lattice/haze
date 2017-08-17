@@ -45,24 +45,29 @@ def updateValsFromRow(row, year):
 		for updateFor in updateForCols:
 			codeToVal[year][lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
 
+def getYears():
+	from os import walk
+	for (dirpath, years, filenames) in walk('./data'):
+		return years
+
 def getCSVs(year):
 	from os import listdir
 	from os.path import isfile, join
-	mypath = './data/'+str(year)
+	mypath = './data/'+year
 	return [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
-for year in range(2014, 2016):
-	for file_name in getCSVs(year):
-		global ailment
-		# print './data/'+str(year)+'/'+file_name
-		csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=3, dtype=str)
-		# print csv.columns.values
-		ailment = None
-		for idx, row in csv.iterrows():
-			if not ailment and not setAilment(row):
-				continue
-			updateCodeMap(row, year)
-			updateValsFromRow(row, year)
+def parse_csvs():
+	for year in getYears():
+		print year
+		for file_name in getCSVs(year):
+			global ailment
+			csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=3, dtype=str)
+			ailment = None
+			for idx, row in csv.iterrows():
+				if not ailment and not setAilment(row):
+					continue
+				updateCodeMap(row, year)
+				updateValsFromRow(row, year)
 
 def printJson(year):
 	vals_json = []
@@ -94,9 +99,7 @@ def printJson(year):
 		ailment_avg = str(round(ailment_avg, 2))
 		totals_item['children'].append({'name':ailment_avg})
 		totals_json['children'].append(totals_item)
-	# print vals_json
 	generate_hist(hist_arr, year)
-	# print totals_json
 
 def generate_hist(hist_arr, year):
 	import numpy as np
@@ -122,5 +125,4 @@ def generate_hist(hist_arr, year):
 	
 	plt.show()
 
-for year in range(2014, 2016):
-	printJson(year)
+parse_csvs()
