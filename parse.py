@@ -101,20 +101,26 @@ def printJson(year):
 def generate_hist(hist_arr, year):
 	import numpy as np
 	import matplotlib.pyplot as plt
-	# Fixing random state for reproducibility
-	# np.random.seed(19680801)
-	# mu, sigma = 100, 15
+	fig = plt.figure()
 	x = np.asarray(hist_arr)
-	print x
-	# the histogram of the data
-	plt.hist(x, 100, normed=1, facecolor='g', alpha=0.75)
-	plt.xlabel('Paid Percentage')
-	plt.ylabel('Probability')
-	plt.title('Histogram of Payment % '+str(year))
-	# plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
-	plt.axis([0, 105, 0, 0.4])
-	plt.grid(True)
-	plt.savefig('hist_paid_%_'+str(year))
+
+	ax1 = fig.add_subplot(211)
+	ax1.hist(x, 100, normed=1, facecolor='g', alpha=0.75)
+	ax1.set_xlabel('Paid Percentage')
+	ax1.set_ylabel('Probability')
+	ax1.set_title('Histogram of Payment %')
+	ax1.axis([0, 105, 0, 0.4])
+	ax1.grid(True)
+
+	ax2 = fig.add_subplot(212)
+	ax2.hist(x, 50, normed=1, facecolor='b', alpha=0.75)
+	ax2.set_xlabel('Paid Percentage')
+	ax2.set_ylabel('Probability')
+	ax2.set_title('Histogram of Payment %')
+	ax2.axis([0, 105, 0, 0.4])
+	ax2.grid(True)
+	
+	plt.show()
 
 for year in range(2014, 2016):
 	printJson(year)
