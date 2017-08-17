@@ -8,22 +8,28 @@ codeToVal = {}
 
 def setAilment(row):
 	global ailment
-	if str(row['DESCRIPTION']) != 'nan':
-		ailment = str(row['DESCRIPTION'])
-		return True
-	else:
-		return False
+	try:
+		if str(row['DESCRIPTION']) != 'nan':
+			ailment = str(row['DESCRIPTION'])
+			return True
+		else:
+			return False
+	except:
+		print row
 
 def updateCodeMap(row, year):
 	global lastSeenCode
-	code = str(row['HCPCS'])
-	if code != 'nan':
-		if year not in ailmentToCode:
-			ailmentToCode[year] = {}
-		if ailment not in ailmentToCode[year]:
-			ailmentToCode[year][ailment] = []
-		ailmentToCode[year][ailment].append(code)
-		lastSeenCode = code
+	try:
+		code = str(row['HCPCS'])
+		if code != 'nan':
+			if year not in ailmentToCode:
+				ailmentToCode[year] = {}
+			if ailment not in ailmentToCode[year]:
+				ailmentToCode[year][ailment] = []
+			ailmentToCode[year][ailment].append(code)
+			lastSeenCode = code
+	except:
+		print row
 
 def getFormattedVal(unformatted):
 	unformatted = str(unformatted)
@@ -34,16 +40,19 @@ def getFormattedVal(unformatted):
 
 def updateValsFromRow(row, year):
 	updateForCols = ['ALLOWED CHARGES', 'ALLOWED SERVICES', 'PAYMENT']
-	modifier = str(row['MODIFIER'])
-	if modifier == 'TOTAL':
-		if not year in codeToVal:
-			codeToVal[year] = {}
-		if not lastSeenCode in codeToVal[year]:
-			codeToVal[year][lastSeenCode] = {}
+	try:
+		modifier = str(row['MODIFIER'])
+		if modifier == 'TOTAL':
+			if not year in codeToVal:
+				codeToVal[year] = {}
+			if not lastSeenCode in codeToVal[year]:
+				codeToVal[year][lastSeenCode] = {}
+				for updateFor in updateForCols:
+					codeToVal[year][lastSeenCode][updateFor] = 0.0
 			for updateFor in updateForCols:
-				codeToVal[year][lastSeenCode][updateFor] = 0.0
-		for updateFor in updateForCols:
-			codeToVal[year][lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
+				codeToVal[year][lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
+	except:
+		print row
 
 def getYears():
 	from os import walk
@@ -57,11 +66,18 @@ def getCSVs(year):
 	return [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 def parse_csvs():
+	yearsSkipRows = {
+		'2000': 4,
+		'2001': 4,
+		'2014': 3,
+		'2015': 3
+	}
 	for year in getYears():
 		print year
 		for file_name in getCSVs(year):
 			global ailment
-			csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=3, dtype=str)
+			#print './data/'+str(year)+'/'+file_name
+			csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=yearsSkipRows[str(year)], dtype=str)
 			ailment = None
 			for idx, row in csv.iterrows():
 				if not ailment and not setAilment(row):
@@ -122,7 +138,7 @@ def generate_hist(hist_arr, year):
 	ax2.set_title('Histogram of Payment %')
 	ax2.axis([0, 105, 0, 0.4])
 	ax2.grid(True)
-	
+
 	plt.show()
 
 parse_csvs()
