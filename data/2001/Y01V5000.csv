@@ -1,0 +1,7 @@
+,,,Medicare Part B Physician/Supplier BESS Data,,
+,,,For Calendar Year 2001,,
+,,,Code Ranges V5000-V5299,,
+,,,,,
+HCPCS,MODIFIER,DESCRIPTION,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+,,,,,
+V5299,TOTAL,HEARING,2,$8,$6
