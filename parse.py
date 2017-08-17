@@ -1,4 +1,5 @@
 import pandas as pd
+import math
 
 ailment = None
 lastSeenCode = None
@@ -78,7 +79,8 @@ def printJson():
 				avg_charges = codeToVal[code]['ALLOWED CHARGES']/codeToVal[code]['ALLOWED SERVICES']
 				if avg_charges > 0.0:
 					percentage_paid = (avg_pay/avg_charges)*100
-					hist_arr.append(percentage_paid)
+					if not math.isnan(percentage_paid):
+						hist_arr.append(percentage_paid)
 					vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
 		vals_json.append(vals_item)
 		ailment_avg = ((ailment_totals['payment']/ailment_totals['services'])/(ailment_totals['charges']/ailment_totals['services']))*100
@@ -93,18 +95,18 @@ def generate_hist(hist_arr):
 	import numpy as np
 	import matplotlib.pyplot as plt
 	# Fixing random state for reproducibility
-	np.random.seed(19680801)
-	mu, sigma = 100, 15
-	x = mu + sigma * np.random.randn(10000)
+	# np.random.seed(19680801)
+	# mu, sigma = 100, 15
+	x = np.asarray(hist_arr)
 	print x
 	# the histogram of the data
-	n, bins, patches = plt.hist(x, 50, normed=1, facecolor='g', alpha=0.75)
-	plt.xlabel('Smarts')
+	plt.hist(x, 100, normed=1, facecolor='g', alpha=0.75)
+	plt.xlabel('Paid Percentage')
 	plt.ylabel('Probability')
-	plt.title('Histogram of IQ')
-	plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
-	plt.axis([40, 160, 0, 0.03])
+	plt.title('Histogram of Payment %')
+	# plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+	plt.axis([0, 105, 0, 0.4])
 	plt.grid(True)
-	plt.show()
+	plt.savefig('hist_paid_%')
 
 printJson()
