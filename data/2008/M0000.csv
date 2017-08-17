@@ -1,0 +1,6 @@
+,,,Medicare Part B Physician/Supplier BESS Data,,
+,,,For Calendar Year 2008,,
+,,,Code Ranges M0000 - M9999,,
+,,,,,
+HCPCS,MODIFIER,DESCRIPTION,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+M0064,TOTAL,SERVICES,"152,689","$4,441,254.68 ","$2,966,664.94 "
