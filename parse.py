@@ -16,6 +16,7 @@ def setAilment(row):
 			return False
 	except:
 		print row
+		raise
 
 def updateCodeMap(row, year):
 	global lastSeenCode
@@ -30,6 +31,7 @@ def updateCodeMap(row, year):
 			lastSeenCode = code
 	except:
 		print row
+		raise
 
 def getFormattedVal(unformatted):
 	unformatted = str(unformatted)
@@ -53,6 +55,7 @@ def updateValsFromRow(row, year):
 				codeToVal[year][lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
 	except:
 		print row
+		raise
 
 def getYears():
 	from os import walk
@@ -69,6 +72,7 @@ def parse_csvs():
 	yearsSkipRows = {
 		'2000': 4,
 		'2001': 4,
+		'2002': 4,
 		'2014': 3,
 		'2015': 3
 	}
@@ -76,7 +80,7 @@ def parse_csvs():
 		print year
 		for file_name in getCSVs(year):
 			global ailment
-			#print './data/'+str(year)+'/'+file_name
+			# print './data/'+str(year)+'/'+file_name
 			csv = pd.read_csv('./data/'+str(year)+'/'+file_name, skiprows=yearsSkipRows[str(year)], dtype=str)
 			ailment = None
 			for idx, row in csv.iterrows():
