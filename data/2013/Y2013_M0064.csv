@@ -1,0 +1,15 @@
+CPT only copyright 2013 American Medical Association. All rights reserved.,,,,,,
+"2013 Part B National Summary Data File
+Code Range: 23) Services (M0000 - M9999)",,,,,,
+This data table begins with column headers on row 5 and data cells are A-6 through F-13,,,,,,
+DESCRIPTION,HCPCS,MODIFIER,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT,
+SERVICES,M0064,,168593,8310302.0599999996,5770689.3300000001,
+SERVICES,M0064,TOTAL,168593,8310302.0599999996,5770689.3300000001,
+SERVICES,M0075,,N/A,0,0,
+SERVICES,M0075,TOTAL,N/A,0,0,
+SERVICES,M0076,,N/A,0,0,
+SERVICES,M0076,TOTAL,N/A,0,0,
+SERVICES,M0300,,N/A,0,0,
+SERVICES,M0300,TOTAL,N/A,0,0,
+"
+“N/A” means that the data cannot be disclosed due to Privacy rules.",,,,,,
