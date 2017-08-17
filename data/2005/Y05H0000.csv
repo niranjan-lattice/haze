@@ -1,0 +1,11 @@
+Medicare Part B Physician/Supplier BESS Data,,,,,
+For Calendar Year 2005,,,,,
+Code Ranges - H0000 - H2001,,,,,
+,BESS REPORTS,CODE RANGES,,,
+HCPCS,MODIFIER,DESCRIPTION,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+_____,________,___________,________________,_______________,_______
+H0031,TOTAL,STATE/LOCAL GOV AGY,1,$0.01 ,$0.01 
+H0035,TOTAL,,36,$0.36 ,$0.14 
+H0048,TOTAL,,1,$0.01 ,
+H2001,TOTAL,,1,$0.01 ,$0.01 
+,,,,,

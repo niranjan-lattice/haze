@@ -1,0 +1,8 @@
+Medicare Part B Physician/Supplier BESS Data,,,,,
+For Calendar Year 2005,,,,,
+Code Ranges - V5000 - V5008,,,,,
+,BESS REPORTS,CODE RANGES,,,
+HCPCS,MODIFIER,DESCRIPTION,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+_____,________,___________,________________,_______________,_______
+V5008,TOTAL,HEARING,1,$1.10 ,$0.88 
+,,,,,
