@@ -59,11 +59,21 @@ for file_name in getCSVs():
 def printJson():
 	vals_json = []
 	hist_arr = []
+	totals_json = {'name':'Ailments','children':[]}
 	for a in ailmentToCode:
 		vals_item = {'name':a, 'children':[]}
+		totals_item = {'name':a, 'children':[]}
+		ailment_totals = {
+			"charges": 0.0,
+			"payment": 0.0,
+			"services": 0.0
+		}
 		for code in ailmentToCode[a]:
 			if code in codeToVal:
 				avg_pay = avg_charges = 0
+				ailment_totals["charges"] += codeToVal[code]['ALLOWED CHARGES']
+				ailment_totals["payment"] += codeToVal[code]['PAYMENT']
+				ailment_totals["services"] += codeToVal[code]['ALLOWED SERVICES']
 				avg_pay = codeToVal[code]['PAYMENT']/codeToVal[code]['ALLOWED SERVICES']
 				avg_charges = codeToVal[code]['ALLOWED CHARGES']/codeToVal[code]['ALLOWED SERVICES']
 				if avg_charges > 0.0:
@@ -71,8 +81,13 @@ def printJson():
 					hist_arr.append(percentage_paid)
 					vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
 		vals_json.append(vals_item)
+		ailment_avg = ((ailment_totals['payment']/ailment_totals['services'])/(ailment_totals['charges']/ailment_totals['services']))*100
+		ailment_avg = str(round(ailment_avg, 2))
+		totals_item['children'].append({'name':ailment_avg})
+		totals_json['children'].append(totals_item)
 	# print vals_json
 	generate_hist(hist_arr)
+	# print totals_json
 
 def generate_hist(hist_arr):
 	import numpy as np
