@@ -1,5 +1,7 @@
 import pandas as pd
 import math
+import numpy as np
+import matplotlib.pyplot as plt
 
 ailment = None
 lastSeenCode = None
@@ -101,11 +103,13 @@ def parse_csvs():
 
 def printJson():
 	hist_arr = {}
+	line_arr = {}
 	for year in getYears():
 		vals_json = []
 		hist_arr[year] = []
 		totals_json = {'name':'Ailments','children':[]}
 		for a in ailmentToCode[year]:
+			line_arr[a] = {}
 			vals_item = {'name':a, 'children':[]}
 			totals_item = {'name':a, 'children':[]}
 			ailment_totals = {
@@ -128,14 +132,15 @@ def printJson():
 						vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
 			vals_json.append(vals_item)
 			ailment_avg = ((ailment_totals['payment']/ailment_totals['services'])/(ailment_totals['charges']/ailment_totals['services']))*100
+			if not math.isnan(ailment_avg):
+				line_arr[a][year] = ailment_avg
 			ailment_avg = str(round(ailment_avg, 2))
 			totals_item['children'].append({'name':ailment_avg})
 			totals_json['children'].append(totals_item)
-	generate_hist(hist_arr)
+	# generate_hist(hist_arr)
+	generate_line(line_arr)
 
 def generate_hist(hist_data):
-	import numpy as np
-	import matplotlib.pyplot as plt
 	fig = plt.figure()
 	cols = len(hist_data)
 	rows = 1
@@ -144,14 +149,29 @@ def generate_hist(hist_data):
 	for idx, year in enumerate(years):
 		x = np.asarray(hist_data[str(year)])
 		ax1 = fig.add_subplot(rows, cols, idx+1)
-		y, binEdges = np.histogram(x, bins=100)
-		bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
-		ax1.plot(bincenters,y,'ro')
-		# ax1.hist(x, 25, normed=1, facecolor='g', alpha=0.75, histtype='barstacked')
-		# ax1.set_xlabel('Paid Percentage')
-		# ax1.set_title(str(year))
-		# ax1.axis([40, 105, 0, 0.5])
-		# ax1.grid(True)
+		ax1.hist(x, 25, normed=1, facecolor='g', alpha=0.75, histtype='step')
+		ax1.set_xlabel('Paid Percentage')
+		ax1.set_title(str(year))
+		ax1.axis([40, 105, 0, 0.5])
+		ax1.grid(True)
+	plt.show()
+
+def generate_line(line_data):
+	fig = plt.figure()
+	rows = 2
+	cols = 1
+	for idx, (ailment, vals) in enumerate(line_data.iteritems()):
+		if (idx + 1) > rows:
+			break
+		ax1 = fig.add_subplot(rows, cols, idx+1)
+		years = [int(y) for y in vals.keys()]
+		years.sort()
+		percents = [vals[str(year)] for year in years]
+		ax1.plot(years, percents)
+		ax1.set_xlabel('Year')
+		ax1.set_title(ailment)
+		ax1.axis([2000, 2015, 40, 100])
+		ax1.grid(True)
 	plt.show()
 
 parse_csvs()
