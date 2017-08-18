@@ -25,7 +25,7 @@ def updateCodeMap(row, year):
 	global lastSeenCode
 	try:
 		code = str(row['HCPCS'])
-		if code != 'nan':
+		if code != 'nan' and code.isalnum():
 			if year not in ailmentToCode:
 				ailmentToCode[year] = {}
 			if ailment not in ailmentToCode[year]:
@@ -55,8 +55,6 @@ def updateValsFromRow(row, year):
 					codeToVal[year][lastSeenCode][updateFor] = 0.0
 			for updateFor in col_names:
 				codeToVal[year][lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
-		if not lastSeenCode.isalnum():
-			print lastSeenCode
 	except:
 		print row
 		raise
