@@ -153,9 +153,9 @@ def generate_line(line_data):
 	plot_num = 1
 	for ailment, vals in line_data.iteritems():
 		if plot_num > rows:
-			fig = plt.figure()
 			plt.savefig('./graphs/'+ailment.replace(' ','').replace('/','')+'.png')
 			plot_num = 1
+			fig = plt.figure()
 		ax1 = fig.add_subplot(rows, cols, plot_num)
 		years = [int(y) for y in vals.keys()]
 		years.sort()
@@ -163,11 +163,10 @@ def generate_line(line_data):
 		for year in years:
 			curr_vals = vals[str(year)]
 			percents.append(safe_division(curr_vals['payment_avg'],curr_vals['charges_avg'],0.0))
-		print years, percents
 		ax1.plot(years, percents)
 		# ax1.set_xlabel('Year')
 		ax1.set_title(ailment)
-		ax1.axis([2000, 2015, 0, 1])
+		ax1.axis([2000, 2015, min(percents)-0.01, max(percents)+0.01])
 		ax1.grid(True)
 		plot_num += 1
 	plt.savefig('./graphs/last.png')
