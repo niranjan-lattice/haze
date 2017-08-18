@@ -2,6 +2,7 @@ import pandas as pd
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 ailment = None
 lastSeenCode = None
@@ -152,7 +153,8 @@ def generate_line(line_data):
 	plot_num = 1
 	for ailment, vals in line_data.iteritems():
 		if plot_num > rows:
-			plt.savefig('./graphs/'+ailment.replace(' ','')+'.png')
+			fig = plt.figure()
+			plt.savefig('./graphs/'+ailment.replace(' ','').replace('/','')+'.png')
 			plot_num = 1
 		ax1 = fig.add_subplot(rows, cols, plot_num)
 		years = [int(y) for y in vals.keys()]
@@ -170,32 +172,16 @@ def generate_line(line_data):
 		plot_num += 1
 	plt.savefig('./graphs/last.png')
 
-def temp():
-	fig = plt.figure()
-	rows = 3
-	cols = 1
-	plot_num = 1
-	for idx in range(20):
-		if plot_num > rows:
-			plot_num = 1
-			plt.savefig('./'+str(idx))
-		ax1 = fig.add_subplot(rows, cols, plot_num)
-		plot_num += 1
-		# years = [int(y) for y in vals.keys()]
-		# years.sort()
-		# percents = []
-		# for year in years:
-		# 	curr_vals = vals[str(year)]
-		# 	percents.append(safe_division(curr_vals['payment_avg'],curr_vals['charges_avg'],0.0))
-		# print years, percents
-		ax1.plot([1,2,3], [1,2,3])
-		ax1.set_xlabel('Year')
-		# ax1.set_title(ailment)
-		# ax1.axis([2000, 2015, 40, 100])
-		ax1.grid(True)
-	plt.savefig('./blahblah')
+def read_json(file_name):
+	with open(file_name) as data_file:
+	    return json.load(data_file)
 
-parse_csvs()
+# parse_csvs()
+# with open('ailmentToCode.json', 'w') as outfile:
+#     json.dump(ailmentToCode, outfile)
+# with open('codeToVal.json', 'w') as outfile:
+#     json.dump(codeToVal, outfile)
+ailmentToCode = read_json('./ailmentToCode.json')
+codeToVal = read_json('./codeToVal.json')
 line_data = build_ailment_aggregate()
 generate_line(line_data)
-# temp()
