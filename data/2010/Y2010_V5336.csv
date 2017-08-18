@@ -1,0 +1,14 @@
+CPT only copyright 2010 American Medical Association. All rights reserved.,,,,,
+,,,,,
+"2010 Part B National Summary Data File
+Code Range: 31) Speech-Language Pathology Services (V5300 - V9999)",,,,,
+This data table begins with column headers on row 5 and data cells are A-6 through F-11,,,,,
+DESCRIPTION,HCPCS,MODIFIER,ALLOWED SERVICES,ALLOWED CHARGES,PAYMENT
+SPEECH-LANGUAGE PATHOLOGY SERVICES,V5336,TOTAL,N/A,0,0
+SPEECH-LANGUAGE PATHOLOGY SERVICES,V5336,,N/A,0,0
+SPEECH-LANGUAGE PATHOLOGY SERVICES,V5362,TOTAL,N/A,0,0
+SPEECH-LANGUAGE PATHOLOGY SERVICES,V5362,,N/A,0,0
+SPEECH-LANGUAGE PATHOLOGY SERVICES,V5364,TOTAL,N/A,0,0
+SPEECH-LANGUAGE PATHOLOGY SERVICES,V5364,,N/A,0,0
+"
+“N/A” means that the data cannot be disclosed due to Privacy rules.",,,,,
