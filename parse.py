@@ -145,24 +145,57 @@ def generate_hist(hist_data):
 	plt.show()
 
 def generate_line(line_data):
-	print line_data
-	# fig = plt.figure()
-	# rows = 5
-	# cols = 1
-	# for idx, (ailment, vals) in enumerate(line_data.iteritems()):
-	# 	if (idx + 1) > rows:
-	# 		break
-	# 	ax1 = fig.add_subplot(rows, cols, idx+1)
-	# 	years = [int(y) for y in vals.keys()]
-	# 	years.sort()
-	# 	percents = [vals[str(year)] for year in years]
-	# 	print years, percents
-	# 	ax1.plot(years, percents)
-	# 	ax1.set_xlabel('Year')
-	# 	ax1.set_title(ailment)
-	# 	ax1.axis([2000, 2015, 40, 100])
-	# 	ax1.grid(True)
-	# plt.show()
+	# print line_data
+	fig = plt.figure()
+	rows = 2
+	cols = 1
+	plot_num = 1
+	for ailment, vals in line_data.iteritems():
+		if plot_num > rows:
+			plt.savefig('./graphs/'+ailment.replace(' ','')+'.png')
+			plot_num = 1
+		ax1 = fig.add_subplot(rows, cols, plot_num)
+		years = [int(y) for y in vals.keys()]
+		years.sort()
+		percents = []
+		for year in years:
+			curr_vals = vals[str(year)]
+			percents.append(safe_division(curr_vals['payment_avg'],curr_vals['charges_avg'],0.0))
+		print years, percents
+		ax1.plot(years, percents)
+		# ax1.set_xlabel('Year')
+		ax1.set_title(ailment)
+		ax1.axis([2000, 2015, 0, 1])
+		ax1.grid(True)
+		plot_num += 1
+	plt.savefig('./graphs/last.png')
+
+def temp():
+	fig = plt.figure()
+	rows = 3
+	cols = 1
+	plot_num = 1
+	for idx in range(20):
+		if plot_num > rows:
+			plot_num = 1
+			plt.savefig('./'+str(idx))
+		ax1 = fig.add_subplot(rows, cols, plot_num)
+		plot_num += 1
+		# years = [int(y) for y in vals.keys()]
+		# years.sort()
+		# percents = []
+		# for year in years:
+		# 	curr_vals = vals[str(year)]
+		# 	percents.append(safe_division(curr_vals['payment_avg'],curr_vals['charges_avg'],0.0))
+		# print years, percents
+		ax1.plot([1,2,3], [1,2,3])
+		ax1.set_xlabel('Year')
+		# ax1.set_title(ailment)
+		# ax1.axis([2000, 2015, 40, 100])
+		ax1.grid(True)
+	plt.savefig('./blahblah')
 
 parse_csvs()
-print build_ailment_aggregate()
+line_data = build_ailment_aggregate()
+generate_line(line_data)
+# temp()
