@@ -7,6 +7,7 @@ ailment = None
 lastSeenCode = None
 ailmentToCode = {}
 codeToVal = {}
+col_names = ['ALLOWED CHARGES', 'ALLOWED SERVICES', 'PAYMENT']
 
 def setAilment(row):
 	global ailment
@@ -43,18 +44,19 @@ def getFormattedVal(unformatted):
 	return formatted
 
 def updateValsFromRow(row, year):
-	updateForCols = ['ALLOWED CHARGES', 'ALLOWED SERVICES', 'PAYMENT']
 	try:
 		modifier = str(row['MODIFIER'])
-		if modifier == 'TOTAL':
+		if modifier == 'TOTAL' and lastSeenCode.isalnum():
 			if not year in codeToVal:
 				codeToVal[year] = {}
 			if not lastSeenCode in codeToVal[year]:
 				codeToVal[year][lastSeenCode] = {}
-				for updateFor in updateForCols:
+				for updateFor in col_names:
 					codeToVal[year][lastSeenCode][updateFor] = 0.0
-			for updateFor in updateForCols:
+			for updateFor in col_names:
 				codeToVal[year][lastSeenCode][updateFor] += getFormattedVal(row[updateFor])
+		if not lastSeenCode.isalnum():
+			print lastSeenCode
 	except:
 		print row
 		raise
@@ -101,44 +103,32 @@ def parse_csvs():
 				print './data/'+str(year)+'/'+file_name
 				raise
 
-def printJson():
-	hist_arr = {}
-	line_arr = {}
-	for year in getYears():
-		vals_json = []
-		hist_arr[year] = []
-		totals_json = {'name':'Ailments','children':[]}
-		for a in ailmentToCode[year]:
-			line_arr[a] = {}
-			vals_item = {'name':a, 'children':[]}
-			totals_item = {'name':a, 'children':[]}
-			ailment_totals = {
-				"charges": 0.0,
-				"payment": 0.0,
-				"services": 0.0
-			}
-			for code in ailmentToCode[year][a]:
-				if code in codeToVal[year]:
-					avg_pay = avg_charges = 0
-					ailment_totals["charges"] += codeToVal[year][code]['ALLOWED CHARGES']
-					ailment_totals["payment"] += codeToVal[year][code]['PAYMENT']
-					ailment_totals["services"] += codeToVal[year][code]['ALLOWED SERVICES']
-					avg_pay = codeToVal[year][code]['PAYMENT']/codeToVal[year][code]['ALLOWED SERVICES']
-					avg_charges = codeToVal[year][code]['ALLOWED CHARGES']/codeToVal[year][code]['ALLOWED SERVICES']
-					if avg_charges > 0.0:
-						percentage_paid = (avg_pay/avg_charges)*100
-						if not math.isnan(percentage_paid):
-							hist_arr[year].append(percentage_paid)
-						vals_item['children'].append({'name':code, 'children':[{'name':percentage_paid}]})
-			vals_json.append(vals_item)
-			ailment_avg = ((ailment_totals['payment']/ailment_totals['services'])/(ailment_totals['charges']/ailment_totals['services']))*100
-			if not math.isnan(ailment_avg):
-				line_arr[a][year] = ailment_avg
-			ailment_avg = str(round(ailment_avg, 2))
-			totals_item['children'].append({'name':ailment_avg})
-			totals_json['children'].append(totals_item)
-	# generate_hist(hist_arr)
-	generate_line(line_arr)
+def safe_division(n, d, safe_val):
+	if d <= 0:
+		return safe_val
+	else:
+		return n / d
+
+def safe_float(val, safe_val):
+	if math.isnan(val):
+		return safe_val
+	return float(val)
+
+def build_ailment_aggregate():
+	aggregate = {}
+	for year, ailment_codes in ailmentToCode.iteritems():
+		for ailment, codes in ailment_codes.iteritems():
+			if ailment not in aggregate:
+				aggregate[ailment] = {}
+			charges = payments = services = 0.0
+			for code in codes:
+				charges += safe_float(codeToVal[year][code][col_names[0]], 0.0)
+				payments += safe_float(codeToVal[year][code][col_names[2]], 0.0)
+				services += safe_float(codeToVal[year][code][col_names[1]], 0.0)
+			aggregate[ailment][year] = {'charges_avg':safe_division(charges, services, charges),\
+										'payment_avg':safe_division(payments, services, 0.0)}
+	return aggregate
+
 
 def generate_hist(hist_data):
 	fig = plt.figure()
@@ -157,22 +147,24 @@ def generate_hist(hist_data):
 	plt.show()
 
 def generate_line(line_data):
-	fig = plt.figure()
-	rows = 2
-	cols = 1
-	for idx, (ailment, vals) in enumerate(line_data.iteritems()):
-		if (idx + 1) > rows:
-			break
-		ax1 = fig.add_subplot(rows, cols, idx+1)
-		years = [int(y) for y in vals.keys()]
-		years.sort()
-		percents = [vals[str(year)] for year in years]
-		ax1.plot(years, percents)
-		ax1.set_xlabel('Year')
-		ax1.set_title(ailment)
-		ax1.axis([2000, 2015, 40, 100])
-		ax1.grid(True)
-	plt.show()
+	print line_data
+	# fig = plt.figure()
+	# rows = 5
+	# cols = 1
+	# for idx, (ailment, vals) in enumerate(line_data.iteritems()):
+	# 	if (idx + 1) > rows:
+	# 		break
+	# 	ax1 = fig.add_subplot(rows, cols, idx+1)
+	# 	years = [int(y) for y in vals.keys()]
+	# 	years.sort()
+	# 	percents = [vals[str(year)] for year in years]
+	# 	print years, percents
+	# 	ax1.plot(years, percents)
+	# 	ax1.set_xlabel('Year')
+	# 	ax1.set_title(ailment)
+	# 	ax1.axis([2000, 2015, 40, 100])
+	# 	ax1.grid(True)
+	# plt.show()
 
 parse_csvs()
-printJson()
+print build_ailment_aggregate()
