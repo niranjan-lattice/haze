@@ -242,34 +242,35 @@ def download_hcspcs_deets():
 				json.dump({'hcpcs':deets}, outfile)
 			time.sleep(60)
 
-wordMap = {}
+def predict_payment_percent():
+	wordMap = {}
 
-sentence = 'I have to buy contact lens and I need to call an ambulance to fix my fractured bone and get family planning'
+	sentence = 'I have to buy contact lens and I need to call an ambulance to fix my fractured bone and get family planning'
 
-for file_name in getHCPCSFiles():
-	# print file_name
-	try:
-		currJson = read_json('./hcpcs/'+file_name)
-		for code in currJson['hcpcs']:
-			for word in sentence.split(' '):
-				if not word in wordMap:
-					wordMap[word] = {'ailments':{}}
-				if word in code['LongDescription'].split(' ') or word in code['ShortDescription'].split(' '):
-					# print word
-					# print code['HCPC'], code['LongDescription'], code['ShortDescription']
-					if not file_name in wordMap[word]['ailments']:
-						wordMap[word]['ailments'][file_name] = {'codes':set()}
-					if not code['HCPC'] in wordMap[word]['ailments'][file_name]['codes']:
-						# print 'Adding ',code['HCPC']
-						wordMap[word]['ailments'][file_name]['codes'].add(code['HCPC'])
-	except:
-		print 'Error processing ', file_name, sys.exc_info()
-		raise
+	for file_name in getHCPCSFiles():
+		# print file_name
+		try:
+			currJson = read_json('./hcpcs/'+file_name)
+			for code in currJson['hcpcs']:
+				for word in sentence.split(' '):
+					if not word in wordMap:
+						wordMap[word] = {'ailments':{}}
+					if word in code['LongDescription'].split(' ') or word in code['ShortDescription'].split(' '):
+						# print word
+						# print code['HCPC'], code['LongDescription'], code['ShortDescription']
+						if not file_name in wordMap[word]['ailments']:
+							wordMap[word]['ailments'][file_name] = {'codes':set()}
+						if not code['HCPC'] in wordMap[word]['ailments'][file_name]['codes']:
+							# print 'Adding ',code['HCPC']
+							wordMap[word]['ailments'][file_name]['codes'].add(code['HCPC'])
+		except:
+			print 'Error processing ', file_name, sys.exc_info()
+			raise
 
-# print wordMap
-for word in wordMap:
-	for ailment in wordMap[word]['ailments']:
-		print word, ailment, len(wordMap[word]['ailments'][ailment]['codes'])
+	# print wordMap
+	for word in wordMap:
+		for ailment in wordMap[word]['ailments']:
+			print word, ailment, len(wordMap[word]['ailments'][ailment]['codes'])
 
 def save_json_files():
 	parse_csvs()
@@ -286,4 +287,4 @@ def save_graphs():
 	line_data = build_ailment_aggregate()
 	generate_line(line_data)
 
-save_graphs()
+predict_payment_percent()
