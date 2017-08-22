@@ -230,34 +230,17 @@ def get_hcpcs_deets():
 	print selected
 	get_deets_for_codes(selected)
 
-# parse_csvs()
-# with open('ailmentToCode.json', 'w') as outfile:
-#     json.dump(ailmentToCode, outfile)
-# with open('codeToVal.json', 'w') as outfile:
-#     json.dump(codeToVal, outfile)
-# ailmentToCode = read_json('./ailmentToCode.json')
-# codeToVal = read_json('./codeToVal.json')
-# line_data = build_ailment_aggregate()
-# print sorted([str(key) for key in ailmentToCode['2010'].keys()])
-# print sorted([str(key) for key in ailmentToCode['2009'].keys()])
-# get_hcpcs_deets()
-# hcpcsDeets = read_json('./hcpcs.json')
-
-# for ailment in ailmentToCode['2015'].keys():
-# 	print ailment, len(set([str(code) for code in ailmentToCode['2015'][ailment]]))
-
-# year = '2015'
-# for ailment in ailmentToCode[year].keys():
-# 	if ailment != 'CARDIOVASCULAR':
-# 		print ailment
-# 		codes = list(set([str(code) for code in ailmentToCode[year][ailment]]))
-# 		deets = get_deets_for_codes(codes)
-# 		ailment = ailment.replace('/', ' ')
-# 		with open(ailment+'.json', 'w') as outfile:
-# 			json.dump({'hcpcs':deets}, outfile)
-# 		time.sleep(60)
-
-# generate_line(line_data)
+def download_hcspcs_deets():
+	year = '2015'
+	for ailment in ailmentToCode[year].keys():
+		if ailment != 'CARDIOVASCULAR':
+			print ailment
+			codes = list(set([str(code) for code in ailmentToCode[year][ailment]]))
+			deets = get_deets_for_codes(codes)
+			ailment = ailment.replace('/', ' ')
+			with open(ailment+'.json', 'w') as outfile:
+				json.dump({'hcpcs':deets}, outfile)
+			time.sleep(60)
 
 wordMap = {}
 
@@ -288,6 +271,19 @@ for word in wordMap:
 	for ailment in wordMap[word]['ailments']:
 		print word, ailment, len(wordMap[word]['ailments'][ailment]['codes'])
 
+def save_json_files():
+	parse_csvs()
+	# get_hcpcs_deets()
+	# hcpcsDeets = read_json('./hcpcs.json')
+	with open('ailmentToCode.json', 'w') as outfile:
+	    json.dump(ailmentToCode, outfile)
+	with open('codeToVal.json', 'w') as outfile:
+	    json.dump(codeToVal, outfile)
 
+def save_graphs():
+	ailmentToCode = read_json('./ailmentToCode.json')
+	codeToVal = read_json('./codeToVal.json')
+	line_data = build_ailment_aggregate()
+	generate_line(line_data)
 
-
+save_graphs()
