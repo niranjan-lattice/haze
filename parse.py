@@ -6,12 +6,18 @@ import json
 import requests
 import time
 import sys
+import nltk
+from nltk.corpus import stopwords
+from nltk import word_tokenize
+from sklearn.naive_bayes import GaussianNB
+from sklearn import datasets, metrics
 
 ailment = None
 lastSeenCode = None
 ailmentToCode = {}
 codeToVal = {}
 col_names = ['ALLOWED CHARGES', 'ALLOWED SERVICES', 'PAYMENT']
+prediction_words = ['lens', 'ambulance', 'x-ray']
 
 def setAilment(row):
 	global ailment
@@ -242,35 +248,39 @@ def download_hcspcs_deets():
 				json.dump({'hcpcs':deets}, outfile)
 			time.sleep(60)
 
-def predict_payment_percent():
-	wordMap = {}
+def generate_ailment_occurances(codeToOccurances):
+	ret_val = {}
+	ailmentToCode = read_json('./ailmentToCode.json')
+	for ailment, codes in ailmentToCode['2015'].iteritems():
+		ailment_summation = [0, 0, 0]
+		for code in codes:
+			if code not in codeToOccurances:
+				continue
+			fd = codeToOccurances[code]
+			for idx, word in enumerate(prediction_words):
+				if word in fd:
+					ailment_summation[idx] += fd[word]
+		ret_val[ailment] = ailment_summation
+	return ret_val
 
-	sentence = 'I have to buy contact lens and I need to call an ambulance to fix my fractured bone and get family planning'
+def build_data_set(occurances_map):
+	ailment_codes = []
+	word_freq_counts = []
+	for idx, ailment in enumerate(occurances_map.keys()):
+		print ailment, idx, occurances_map[ailment]
+		ailment_codes.append(idx)
+		word_freq_counts.append(occurances_map[ailment])
+	return np.asarray(ailment_codes), np.asarray(word_freq_counts)
 
-	for file_name in getHCPCSFiles():
-		# print file_name
-		try:
-			currJson = read_json('./hcpcs/'+file_name)
-			for code in currJson['hcpcs']:
-				for word in sentence.split(' '):
-					if not word in wordMap:
-						wordMap[word] = {'ailments':{}}
-					if word in code['LongDescription'].split(' ') or word in code['ShortDescription'].split(' '):
-						# print word
-						# print code['HCPC'], code['LongDescription'], code['ShortDescription']
-						if not file_name in wordMap[word]['ailments']:
-							wordMap[word]['ailments'][file_name] = {'codes':set()}
-						if not code['HCPC'] in wordMap[word]['ailments'][file_name]['codes']:
-							# print 'Adding ',code['HCPC']
-							wordMap[word]['ailments'][file_name]['codes'].add(code['HCPC'])
-		except:
-			print 'Error processing ', file_name, sys.exc_info()
-			raise
+def fit(target, data):
+	classifier = GaussianNB()
+	classifier.fit(data, target)
+	print classifier.predict([[0, 0, 0]])
 
-	# print wordMap
-	for word in wordMap:
-		for ailment in wordMap[word]['ailments']:
-			print word, ailment, len(wordMap[word]['ailments'][ailment]['codes'])
+def predict_payment_percent(codeToOccurances):
+	occurances_map = generate_ailment_occurances(codeToOccurances)
+	target, data = build_data_set(occurances_map)
+	fit(target, data)
 
 def save_json_files():
 	parse_csvs()
@@ -287,4 +297,26 @@ def save_graphs():
 	line_data = build_ailment_aggregate()
 	generate_line(line_data)
 
-predict_payment_percent()
+def parse_hcpcs():
+	codeToOccurances = {}
+	for file_name in getHCPCSFiles():
+		try:
+			currJson = read_json('./hcpcs/'+file_name)
+			for code in currJson['hcpcs']:
+				code_id = code['HCPC']
+				if code_id not in codeToOccurances:
+					codeToOccurances[code_id] = {}
+				wordToOccurances = codeToOccurances[code_id]
+				tokens = [t.lower() for t in word_tokenize(code['LongDescription']) if t.lower() in prediction_words]
+				if len(tokens) > 0:
+					for word, freq in nltk.FreqDist(tokens).most_common(5):
+						if word not in wordToOccurances:
+							wordToOccurances[word] = 0
+						wordToOccurances[word] += freq
+		except:
+			print 'Error processing ', file_name, sys.exc_info()
+			raise		
+	return codeToOccurances
+
+codeToOccurances = parse_hcpcs()
+predict_payment_percent(codeToOccurances)
