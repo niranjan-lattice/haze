@@ -363,7 +363,7 @@ def parse_hcpcs_desc():
 				if code_id not in codeToWords:
 					codeToWords[code_id] = set()
 				tokens = set([t.lower() for t in word_tokenize(code['LongDescription'])]) - set(stopwords.words('english'))
-				codeToWords[code_id] += tokens
+				codeToWords[code_id] = codeToWords[code_id].union(tokens)
 		except:
 			print 'Error processing ', file_name, sys.exc_info()
 			raise		
@@ -372,13 +372,11 @@ def parse_hcpcs_desc():
 sentence = 'Cars ambulances and lens'
 codeToWords = parse_hcpcs_desc()
 userTokens = set([t.lower() for t in word_tokenize(sentence)]) - set(stopwords.words('english'))
-print 'userTokens', userTokens
 matchedCodes = set()
 for code, codeTokens in codeToWords.iteritems():
 	if len(userTokens & codeTokens) > 0:
-		print 'codeTokens', codeTokens
 		matchedCodes.add(code)
-print 'matchedCodes', matchedCodes
+print json.dumps(list(matchedCodes))
 
 # codeToOccurances = parse_hcpcs()
 # predict_payment_percent(codeToOccurances)
