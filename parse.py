@@ -353,6 +353,19 @@ def parse_hcpcs_coverage():
 	print coverages
 	return ailmentToCoverages
 
+def parse_hcpcs_code_coverage():
+	codeToCoverage = {}
+	for file_name in getHCPCSFiles():
+		try:
+			currJson = read_json('./hcpcs/'+file_name)
+			for code in currJson['hcpcs']:
+				coverage = str(code['Coverage'])
+				codeToCoverage[code['HCPC']] = coverage
+		except:
+			print 'Error processing ', file_name, sys.exc_info()
+			raise
+	return codeToCoverage
+
 def parse_hcpcs_desc():
 	codeToWords = {}
 	for file_name in getHCPCSFiles():
@@ -369,14 +382,65 @@ def parse_hcpcs_desc():
 			raise		
 	return codeToWords
 
-sentence = 'Cars ambulances and lens'
-codeToWords = parse_hcpcs_desc()
-userTokens = set([t.lower() for t in word_tokenize(sentence)]) - set(stopwords.words('english'))
-matchedCodes = set()
-for code, codeTokens in codeToWords.iteritems():
-	if len(userTokens & codeTokens) > 0:
-		matchedCodes.add(code)
-print json.dumps(list(matchedCodes))
+def findMatchedCodes():
+	sentence = 'Cars ambulances and lens'
+	codeToWords = parse_hcpcs_desc()
+	userTokens = set([t.lower() for t in word_tokenize(sentence)]) - set(stopwords.words('english'))
+	matchedCodes = set()
+	for code, codeTokens in codeToWords.iteritems():
+		if len(userTokens & codeTokens) > 0:
+			matchedCodes.add(code)
+	with open('matchedCodes.json', 'w') as outfile:
+		json.dump({'codes':list(matchedCodes)}, outfile)
+
+def plotCodePercentages(percentages):
+	fig = plt.figure()
+	rows = 1
+	cols = 1
+	x = np.asarray(percentages)
+	print x
+	ax1 = fig.add_subplot(rows, cols, 1)
+	n, bins, patches = ax1.hist(x, 10, normed=1, facecolor='g', alpha=0.75)
+	ax1.set_xlabel('Paid Percentage')
+	ax1.set_title('Matched Codes Percentages')
+	ax1.axis([0, 100, 0, 1])
+	ax1.grid(True)
+	plt.show()
+
+def plotCodeCoverages(coverages):
+	fig = plt.figure()
+	rows = 1
+	cols = 1
+	x = np.asarray(coverages)
+	print x
+	ax1 = fig.add_subplot(rows, cols, 1)
+	n, bins, patches = ax1.hist(x, 5, normed=1, facecolor='g', alpha=0.75)
+	ax1.set_xlabel('Coverage[S, I, C, M, D]')
+	ax1.set_title('Matched Codes Coverages')
+	ax1.axis([0, 5, 0, 1])
+	ax1.grid(True)
+	plt.show()
+
+def graphMatchedCodes():
+	codeToVal = read_json('./codeToVal.json')["2015"]
+	codeToCoverage = parse_hcpcs_code_coverage()
+	matchedCodes = read_json('./matchedCodes.json')
+	print matchedCodes['codes']
+	percentages = []
+	coverages = []
+	for code in matchedCodes['codes']:
+		charges = safe_float(codeToVal[code][col_names[0]], 0.0)
+		payments = safe_float(codeToVal[code][col_names[2]], 0.0)
+		services = safe_float(codeToVal[code][col_names[1]], 0.0)
+		charges_avg = safe_division(charges, services, charges)
+		payment_avg = safe_division(payments, services, 0.0)
+		percentage = safe_division(payment_avg, charges_avg, 0.0)*100
+		percentages.append(percentage)
+		coverages.append(coverage_codes.index(codeToCoverage[code]))
+	plotCodePercentages(percentages)
+	plotCodeCoverages(coverages)
+
+graphMatchedCodes()
 
 # codeToOccurances = parse_hcpcs()
 # predict_payment_percent(codeToOccurances)
