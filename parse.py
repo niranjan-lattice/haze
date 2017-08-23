@@ -9,8 +9,10 @@ import sys
 import nltk
 from nltk.corpus import stopwords
 from nltk import word_tokenize
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
 from sklearn import datasets, metrics
+
+# {'S': 'Non-covered by Medicare statute', 'I': 'Not payable by Medicare', 'C': 'Carrier judgment', 'M': 'Non-covered by Medicare', 'D': 'Special coverage instructions apply'}
 
 ailment = None
 lastSeenCode = None
@@ -18,6 +20,7 @@ ailmentToCode = {}
 codeToVal = {}
 col_names = ['ALLOWED CHARGES', 'ALLOWED SERVICES', 'PAYMENT']
 prediction_words = ['lens', 'ambulance', 'x-ray']
+coverage_codes = ['S', 'I', 'C', 'M', 'D']
 
 def setAilment(row):
 	global ailment
@@ -152,19 +155,28 @@ def build_ailment_aggregate():
 
 def generate_hist(hist_data):
 	fig = plt.figure()
-	cols = len(hist_data)
-	rows = 1
-	years = [int(y) for y in hist_data.keys()]
+	cols = 1
+	rows = 2
+	plot_num = 1
+	years = [str(y) for y in hist_data.keys()]
 	years.sort()
 	for idx, year in enumerate(years):
-		x = np.asarray(hist_data[str(year)])
-		ax1 = fig.add_subplot(rows, cols, idx+1)
-		ax1.hist(x, 25, normed=1, facecolor='g', alpha=0.75, histtype='step')
-		ax1.set_xlabel('Paid Percentage')
-		ax1.set_title(str(year))
-		ax1.axis([40, 105, 0, 0.5])
-		ax1.grid(True)
-	plt.show()
+		if plot_num > rows:
+			plt.savefig('./hists/'+year+'.png')
+			plot_num = 1
+			fig = plt.figure()
+		if hist_data[str(year)] and len(hist_data[str(year)]) > 0:
+			x = np.asarray([coverage_codes.index(hd) for hd in hist_data[str(year)]])
+			# print x
+			ax1 = fig.add_subplot(rows, cols, plot_num)
+			n, bins, patches = ax1.hist(x, 5, normed=1, facecolor='g', alpha=0.75)
+			# ax1.set_xlabel('Paid Percentage')
+			ax1.set_title(str(year))
+			ax1.axis([0, 5, 0, 1])
+			ax1.grid(True)
+			plot_num += 1
+	# plt.show()
+	plt.savefig('./hists/last.png')
 
 def generate_line(line_data):
 	# print line_data
@@ -252,30 +264,34 @@ def generate_ailment_occurances(codeToOccurances):
 	ret_val = {}
 	ailmentToCode = read_json('./ailmentToCode.json')
 	for ailment, codes in ailmentToCode['2015'].iteritems():
-		ailment_summation = [0, 0, 0]
+		if ailment not in ret_val:
+			ret_val[ailment] = []
 		for code in codes:
+			ailment_code = [0, 0, 0]
 			if code not in codeToOccurances:
 				continue
 			fd = codeToOccurances[code]
 			for idx, word in enumerate(prediction_words):
 				if word in fd:
-					ailment_summation[idx] += fd[word]
-		ret_val[ailment] = ailment_summation
+					ailment_code[idx] += fd[word]
+			ret_val[ailment].append(ailment_code)
 	return ret_val
 
 def build_data_set(occurances_map):
 	ailment_codes = []
 	word_freq_counts = []
 	for idx, ailment in enumerate(occurances_map.keys()):
-		print ailment, idx, occurances_map[ailment]
-		ailment_codes.append(idx)
-		word_freq_counts.append(occurances_map[ailment])
+		print ailment, idx
+		for code_map in occurances_map[ailment]:
+			# print ailment, idx, code_map
+			ailment_codes.append(idx)
+			word_freq_counts.append(code_map)
 	return np.asarray(ailment_codes), np.asarray(word_freq_counts)
 
 def fit(target, data):
 	classifier = GaussianNB()
 	classifier.fit(data, target)
-	print classifier.predict([[0, 0, 0]])
+	print classifier.predict([[0, 0, 1]])
 
 def predict_payment_percent(codeToOccurances):
 	occurances_map = generate_ailment_occurances(codeToOccurances)
@@ -318,5 +334,54 @@ def parse_hcpcs():
 			raise		
 	return codeToOccurances
 
-codeToOccurances = parse_hcpcs()
-predict_payment_percent(codeToOccurances)
+def parse_hcpcs_coverage():
+	coverages = {}
+	ailmentToCoverages = {}
+	for file_name in getHCPCSFiles():
+		try:
+			ailmentToCoverages[file_name] = []
+			currJson = read_json('./hcpcs/'+file_name)
+			for code in currJson['hcpcs']:
+				coverage = str(code['Coverage'])
+				coverageDesc = str(code['CoverageDescription'])
+				if coverage not in coverages:
+					coverages[coverage] = coverageDesc
+				ailmentToCoverages[file_name].append(coverage)
+		except:
+			print 'Error processing ', file_name, sys.exc_info()
+			raise
+	print coverages
+	return ailmentToCoverages
+
+def parse_hcpcs_desc():
+	codeToWords = {}
+	for file_name in getHCPCSFiles():
+		try:
+			currJson = read_json('./hcpcs/'+file_name)
+			for code in currJson['hcpcs']:
+				code_id = code['HCPC']
+				if code_id not in codeToWords:
+					codeToWords[code_id] = set()
+				tokens = set([t.lower() for t in word_tokenize(code['LongDescription'])]) - set(stopwords.words('english'))
+				codeToWords[code_id] += tokens
+		except:
+			print 'Error processing ', file_name, sys.exc_info()
+			raise		
+	return codeToWords
+
+sentence = 'Cars ambulances and lens'
+codeToWords = parse_hcpcs_desc()
+userTokens = set([t.lower() for t in word_tokenize(sentence)]) - set(stopwords.words('english'))
+print 'userTokens', userTokens
+matchedCodes = set()
+for code, codeTokens in codeToWords.iteritems():
+	if len(userTokens & codeTokens) > 0:
+		print 'codeTokens', codeTokens
+		matchedCodes.add(code)
+print 'matchedCodes', matchedCodes
+
+# codeToOccurances = parse_hcpcs()
+# predict_payment_percent(codeToOccurances)
+
+# ailmentToCoverages = parse_hcpcs_coverage()
+# generate_hist(ailmentToCoverages)
